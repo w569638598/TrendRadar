@@ -34,7 +34,7 @@ notification:
   feishu_message_separator: "━━━━━━━━━━━━━━━━━━━" # feishu 消息分割线
 
   webhooks:
-    feishu_url: "" # 飞书机器人的 webhook URL
+    feishu_url: "https://www.feishu.cn/flow/api/trigger-webhook/9096f6f5f06965197306c5170d40646e" # 飞书机器人的 webhook URL
     dingtalk_url: "" # 钉钉机器人的 webhook URL
     wework_url: "" # 企业微信机器人的 webhook URL
     telegram_bot_token: "" # Telegram Bot Token
@@ -51,6 +51,12 @@ platforms:
     name: "今日头条"
   - id: "baidu"
     name: "百度热搜"
+  - id: "weibo"
+    name: "微博"
+  - id: "zhihu"
+    name: "知乎"
+  - id: "bilibili"
+    name: "哔哩哔哩"
   - id: "wallstreetcn-hot"
     name: "华尔街见闻"
   - id: "thepaper"
@@ -63,9 +69,5 @@ platforms:
     name: "凤凰网"
   - id: "tieba"
     name: "贴吧"
-  - id: "weibo"
-    name: "微博"
   - id: "douyin"
     name: "抖音"
-  - id: "zhihu"
-    name: "知乎"
