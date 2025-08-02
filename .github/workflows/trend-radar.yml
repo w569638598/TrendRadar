@@ -1,0 +1,123 @@
+name: Trend Radar News Crawler and Pages Deployment
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # 每30分钟运行一次
+  workflow_dispatch: # 允许手动触发
+  push:
+    branches:
+      - main
+      - master
+
+# 设置权限
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 允许GitHub Pages操作
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  crawl-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else echo "requirements.txt not found"; fi
+
+      - name: Verify required configuration files
+        run: |
+          echo "🔍 Checking required configuration files..."
+          
+          if [ ! -f config/config.yaml ]; then
+            echo "⚠️ Warning: config/config.yaml not found"
+            echo "Creating default config.yaml file..."
+            mkdir -p config
+            echo "# Default configuration file" > config/config.yaml
+            echo "app:" >> config/config.yaml
+            echo "  version_check_url: \"\"" >> config/config.yaml
+            echo "  show_version_update: false" >> config/config.yaml
+            echo "crawler:" >> config/config.yaml
+            echo "  request_interval: 1" >> config/config.yaml
+            echo "  use_proxy: false" >> config/config.yaml
+            echo "  default_proxy: \"\"" >> config/config.yaml
+            echo "  enable_crawler: true" >> config/config.yaml
+            echo "report:" >> config/config.yaml
+            echo "  mode: \"daily\"" >> config/config.yaml
+            echo "  rank_threshold: 3" >> config/config.yaml
+            echo "notification:" >> config/config.yaml
+            echo "  enable_notification: false" >> config/config.yaml
+            echo "  message_batch_size: 5" >> config/config.yaml
+            echo "  batch_send_interval: 1" >> config/config.yaml
+            echo "  feishu_message_separator: \"---\"" >> config/config.yaml
+            echo "weight:" >> config/config.yaml
+            echo "  rank_weight: 0.6" >> config/config.yaml
+            echo "  time_weight: 0.4" >> config/config.yaml
+            echo "platforms:" >> config/config.yaml
+            echo "  toutiao: true" >> config/config.yaml
+            echo "  baidu: true" >> config/config.yaml
+            echo "  weibo: true" >> config/config.yaml
+          fi
+          
+          if [ ! -f config/frequency_words.txt ]; then
+            echo "⚠️ Warning: config/frequency_words.txt not found"
+            echo "Creating default frequency_words.txt file..."
+            mkdir -p config
+            echo "# Default frequency words file" > config/frequency_words.txt
+            echo "# Add your keywords here, one per line" >> config/frequency_words.txt
+          fi
+          
+          echo "✅ Configuration files check completed"
+
+      - name: Run crawler
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DINGTALK_WEBHOOK_URL: ${{ secrets.DINGTALK_WEBHOOK_URL }}
+          WEWORK_WEBHOOK_URL: ${{ secrets.WEWORK_WEBHOOK_URL }}
+          GITHUB_ACTIONS: true
+        run: |
+          python main.py || echo "Crawler execution completed with status: $?"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto update by GitHub Actions: $(date)" && git push) || echo "No changes to commit or push failed"
+
+  deploy-pages:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: crawl-and-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
