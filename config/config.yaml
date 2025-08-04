@@ -24,8 +24,8 @@ crawler:
 #   • 适用场景：避免重复信息干扰
 
 report:
-  mode: "daily" # 可选: "daily"|"incremental"|"current"
-  rank_threshold: 5 # 排名高亮阈值
+  mode: "current" # 可选: "daily"|"incremental"|"current"
+  rank_threshold: 20 # 排名高亮阈值
 
 notification:
   enable_notification: true # 是否启用通知功能，false 时不发送手机通知
@@ -42,9 +42,9 @@ notification:
 
 # 用于让关注度更高的新闻在更前面显示，合起来是 1 就行
 weight:
-  rank_weight: 0.6 # 排名权重
-  frequency_weight: 0.3 # 频次权重
-  hotness_weight: 0.1 # 热度权重
+  rank_weight: 0.3 # 排名权重
+  frequency_weight: 0.1 # 频次权重
+  hotness_weight: 0.6 # 热度权重
 
 platforms:
   - id: "toutiao"
@@ -53,21 +53,13 @@ platforms:
     name: "百度热搜"
   - id: "weibo"
     name: "微博"
-  - id: "zhihu"
-    name: "知乎"
-  - id: "bilibili"
-    name: "哔哩哔哩"
   - id: "wallstreetcn-hot"
     name: "华尔街见闻"
   - id: "thepaper"
     name: "澎湃新闻"
-  - id: "bilibili-hot-search"
-    name: "bilibili 热搜"
   - id: "cls-hot"
     name: "财联社热门"
   - id: "ifeng"
     name: "凤凰网"
-  - id: "tieba"
-    name: "贴吧"
   - id: "douyin"
     name: "抖音"
